@@ -1,46 +1,59 @@
 Add-Type -AssemblyName Microsoft.VisualBasic
 
-
-# Change folders based on where thumbnails, clips, and edits folder is located.
 $folders = @(
-    "D:\Medal\.Thumbnails",
     "D:\Medal\Clips",
-    "D:\Medal\Edits",
-    "D:\Medal\editor\render"
+    "D:\Medal\Screenshots",
+    "D:\Medal\Thumbnails",
+    "D:\Medal\Video-Editor"
 )
 
 foreach ($folder in $folders) {
     if (Test-Path $folder) {
+        Write-Host "Cleaning $folder..."
 
-        Write-Host "Cleaning $folder"
-
-        # Delete all files (to Recycle Bin)
-        Get-ChildItem $folder -Recurse -Force -File | ForEach-Object {
-            [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
-                $_.FullName,
-                'OnlyErrorDialogs',
-                'SendToRecycleBin'
-            )
+        # Delete all files directly in folder and subfolders
+        Get-ChildItem -Path $folder -Recurse -Force -File | ForEach-Object {
+            try {
+                Remove-Item -Path $_.FullName -Force -ErrorAction Stop
+                Write-Host "  Deleted file: $($_.Name)"
+            } catch {
+                Write-Host "  Skipped (in use): $($_.Name)"
+            }
         }
 
-        # Delete all subfolders (to Recycle Bin)
-        Get-ChildItem $folder -Recurse -Force -Directory | ForEach-Object {
-            [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteDirectory(
-                $_.FullName,
-                'OnlyErrorDialogs',
-                'SendToRecycleBin'
-            )
-        }
+        # Delete all subfolders after files are removed
+        Get-ChildItem -Path $folder -Recurse -Force -Directory |
+            Sort-Object -Property FullName -Descending |
+            ForEach-Object {
+                try {
+                    Remove-Item -Path $_.FullName -Force -Recurse -ErrorAction Stop
+                    Write-Host "  Deleted folder: $($_.Name)"
+                } catch {
+                    Write-Host "  Skipped folder (in use): $($_.Name)"
+                }
+            }
+
+        Write-Host "Done: $folder"
+    } else {
+        Write-Host "Folder not found, skipping: $folder"
     }
 }
 
+Write-Host ""
 Write-Host "Clearing Recycle Bin..."
 
-# Empty the Recycle Bin (no prompt)
-# "0x0007" means: no confirmation, no progress UI, no sound
-# This permanently deletes everything currently in the Recycle Bin
-(New-Object -ComObject Shell.Application).NameSpace(0xA).Items() |
-    ForEach-Object { Remove-Item $_.Path -Recurse -Force -ErrorAction SilentlyContinue }
+# Empty Recycle Bin
+try {
+    $shell = New-Object -ComObject Shell.Application
+    $recycleBin = $shell.NameSpace(0xA)
+    $recycleBin.Items() | ForEach-Object {
+        Remove-Item $_.Path -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    Write-Host "Recycle Bin emptied."
+} catch {
+    Write-Host "Could not empty Recycle Bin: $_"
+}
 
-Write-Host "All Medal folders cleaned and Recycle Bin emptied."
+Write-Host ""
+Write-Host "All done! Medal folders cleaned and Recycle Bin emptied."
 Start-Sleep -Seconds 2
