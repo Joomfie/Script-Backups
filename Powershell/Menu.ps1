@@ -106,6 +106,20 @@ function Clean-MedalClips {
     Write-Host "All done! Medal folders cleaned and Recycle Bin emptied." -ForegroundColor Green
 }
 
+function Start-ASF {
+    Write-Host ""
+    Write-Host "Starting ArchiSteamFarm (without admin)..." -ForegroundColor Cyan
+    $asfPath = "PATH/TO/FILE"
+    $taskName = "RunASFAsUser"
+    $action = New-ScheduledTaskAction -Execute $asfPath
+    $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
+    Register-ScheduledTask -TaskName $taskName -Action $action -Principal $principal -Force | Out-Null
+    Start-ScheduledTask -TaskName $taskName
+    Start-Sleep -Seconds 2
+    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
+    Write-Host "ArchiSteamFarm launched." -ForegroundColor Green
+}
+
 # ─────────────────────────────────────────────
 # MENU LOOP
 # ─────────────────────────────────────────────
@@ -119,21 +133,23 @@ do {
     Write-Host " 2. Restart Explorer + SFC Scan"
     Write-Host " 3. Kill CompactGUI"
     Write-Host " 4. Clean Medal Clips"
-    Write-Host " 5. Exit"
+    Write-Host " 5. Start ArchiSteamFarm"
+    Write-Host " 6. Exit"
     Write-Host "===============================" -ForegroundColor DarkCyan
     Write-Host ""
-    $choice = Read-Host "Select an option (1-5)"
+    $choice = Read-Host "Select an option (1-6)"
 
     switch ($choice) {
         "1" { Kill-COMSurrogate }
         "2" { Restart-ExplorerAndSFC }
         "3" { Kill-CompactGUI }
         "4" { Clean-MedalClips }
-        "5" { Write-Host "Goodbye." -ForegroundColor DarkGray; exit }
-        default { Write-Host "Invalid option. Please enter 1-5." -ForegroundColor Red }
+        "5" { Start-ASF }
+        "6" { Write-Host "Goodbye." -ForegroundColor DarkGray; exit }
+        default { Write-Host "Invalid option. Please enter 1-6." -ForegroundColor Red }
     }
 
-    if ($choice -ne "5") {
+    if ($choice -ne "6") {
         Write-Host ""
         Write-Host "Press any key to return to the menu..." -ForegroundColor DarkGray
         $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
