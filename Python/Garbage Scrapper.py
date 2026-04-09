@@ -21,9 +21,7 @@ CONFIG = {
     # Temporary processing folders — downloads land here first before being moved.
     # Set any slot to "" or None to disable it; the slot will be skipped entirely.
     "PROCESSING_DIRS": [
-        r"Path\To\Processing\Slot1",
-        r"Path\To\Processing\Slot2",
-        r"Path\To\Processing\Slot3",
+        r"Path\To\Folder",
         "",
         None,
     ],
@@ -31,9 +29,9 @@ CONFIG = {
     # Final destination folders — files are moved here after a download finishes.
     # Pairs 1-to-1 with PROCESSING_DIRS. Set to "" or None to leave files in processing.
     "DESTINATION_DIRS": [
-        r"Path\To\Destination\Slot1",
-        r"Path\To\Destination\Slot2",
-        r"Path\To\Destination\Slot3",
+        r"Path\To\Folder",
+        r"Path\To\Folder",
+        r"Path\To\Folder",
         "",
         None,
     ],
@@ -253,6 +251,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-```
-
-There it is. Look it over and let me know what needs changing.
