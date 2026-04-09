@@ -1,4 +1,3 @@
-```python
 import shutil
 import subprocess
 import threading
